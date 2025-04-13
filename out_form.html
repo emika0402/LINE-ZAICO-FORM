@@ -1,0 +1,135 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eas-出庫フォーム</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.min.css">
+
+    <style>
+        .bg {
+            background-color: rgb(251, 232, 249);
+        }
+    </style>
+</head>
+<body class="bg">
+    <div class="card mx-auto mt-3 mb-4" style="width: 90%;">
+        <h3 class="text-center card-body mb-0">出庫フォーム</h3>
+    </div>
+
+    <form method="post" class="mx-auto ml-3 mr-3" style="width: 90%;" onsubmit="return false;">
+        <div class="card p-3 mb-2">
+            <div class="mb-3">
+                <label for="inout_date" class="form-label">出庫日</label>
+                <input type="text" name="inout_date" id="inout_date" class="form-control" placeholder="年/月/日" required />
+            </div>
+        </div>
+
+        <div class="card p-3 mb-2">
+            <div class="mb-3">
+                <label for="product" class="form-label">品番・商品名・価格</label>
+                <select name="product" id="product" class="form-control" required>
+                    <option value="AAA">AAA：ドトールギフト：2200円</option>
+                    <option value="BBB">BBB：モロゾフギフト：2100円</option>
+                    <option value="CCC">CCC：味噌汁ギフト：2600円</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-2">
+            <div class="mb-3">
+                <label for="volumes" class="form-label">数量</label>
+                <input type="number" name="volumes" id="volumes" class="form-control" required>
+            </div>
+        </div>
+
+        <div class="mx-auto w-50 text-center">
+            <input type="submit" class="mt-4 w-100 btn btn-warning" value="送信">
+        </div>
+    </form>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" crossorigin="anonymous"></script>
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2.1/sdk.js"></script>
+    
+    <script>
+
+        $(document).ready(function () {
+            const liffId = "";
+            initializeLiff(liffId);
+        })
+
+        function initializeLiff(liffId) {
+            liff.init({
+                liffId: liffId
+            }).then(() => {
+                initializeApp();
+            }).catch((err) => {
+                console.log('LIFF Initialization failed ', err);
+            });
+        }
+
+        function sendText(text) {
+            liff.sendMessages([{
+                'type': 'text',
+                'text': text
+            }]).then(function () {
+                liff.closeWindow();
+            }).catch(function (error) {
+                window.alert('Failed to send message ' + error);
+            });
+        }
+
+        const params = (new URL(document.location)).searchParams;
+        const key = params.get('key');
+
+        $(function () {
+            $('#inout_date').datepicker({
+                dateFormat: "yy/mm/dd"
+            });
+
+            // 送信処理
+            $('form').submit(function () {
+                const product            = $('[name="product"]').val();
+                const inout_date         = $('input[name="inout_date"]').val();
+                const volumes            = $('input[name="volumes"]').val();
+
+                // 日時のフォーマット
+                let formatted_inout_date = formatDate(inout_date);
+
+                const json = {
+                    "inout": "out",
+                    "inout_date": formatted_inout_date,
+                    "product": product,
+                    "volumes": volumes,
+                };
+
+                const msg =`出庫日：
+${formatted_inout_date}\n
+商品名：
+${product}\n
+数量：
+${volumes}\n
+処理データ：
+${JSON.stringify(json)}`;
+
+                console.log('msg=', msg);
+                sendText(msg);
+                return true;
+            });
+
+            function formatDate(date) {
+                date = new Date(date);
+                const week = date.getDay();
+                const weekItems = ["(日)", "(月)", "(火)", "(水)", "(木)", "(金)", "(土)"];
+                const dayOfWeek = weekItems[week];
+                let formatted_date = date.getFullYear() + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日 ' + dayOfWeek;
+                return formatted_date;
+            }
+        });
+    </script>
+</body>
+</html>
