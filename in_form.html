@@ -98,7 +98,8 @@
                 const volumes            = $('input[name="volumes"]').val();
 
                 // 日時のフォーマット
-                let formatted_inout_date = formatDate(inout_date);
+                let formatted_inout_date = inout_date;
+                // let formatted_inout_date = formatDate(inout_date);
 
                 const json = {
                     "inout": "in",
